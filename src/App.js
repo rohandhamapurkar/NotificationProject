@@ -1,18 +1,19 @@
-import React, {Component} from 'react';
-import { View, AsyncStorage, AppState } from 'react-native';
-import reducers from './reducers'; 
+import React, { Component } from 'react';
+import { View, AsyncStorage, AppState, DeviceEventEmitter } from 'react-native';
+import PTRView from 'react-native-pull-to-refresh';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
-import { socketURL } from '../env';
-const io = require('socket.io-client');
+
+import reducers from './reducers'; 
 
 import Header from './components/Header';
-import MessageCard from './components/MessageCard'
+import MessageCards from './components/MessageCards'
 import Spinner from './components/Spinner'
 
-let store = createStore(reducers);
 
-export default class App extends Component {
+const store = createStore(reducers);
+
+class App extends Component {
 
   constructor(props){
     super(props);
@@ -24,19 +25,6 @@ export default class App extends Component {
 
   componentWillMount(){
     this.setState({isStoreLoading: true});
-    this.socket = io(socketURL,{
-      transports: ['websocket'],
-      'reconnection': true,
-      'reconnectionDelay': 1000,
-      'reconnectionDelayMax' : 5000,
-      'reconnectionAttempts': 5
-    });
-    this.socket.on('connect',function(){
-        console.log("connection aya!!");
-    })
-    this.socket.on('disconnect',function(){
-        console.log('disconnected');
-    })
     let that = this;
     AppState.addEventListener('change', this._handleAppStateChange.bind(this));
     AsyncStorage.getItem('completeStore').then((value)=>{
@@ -58,18 +46,26 @@ export default class App extends Component {
     AsyncStorage.setItem('completeStore', storingValue);
   }
 
+  _refresh() {
+    DeviceEventEmitter.emit('refresh');
+  }
+
   render() {
     if(this.state.isStoreLoading){
       return <Spinner></Spinner>
     } else {
       return (
         <Provider store={this.state.store}>
-          <View>
+            <PTRView onRefresh={this._refresh}>
+          <View>            
             <Header headerText={'Error Messages'}/>
-            <MessageCard socket={this.socket}></MessageCard>
+              <MessageCards></MessageCards>
           </View>
+            </PTRView>
         </Provider>
       );
     }
   }
 }
+
+export default App;

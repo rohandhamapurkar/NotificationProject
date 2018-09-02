@@ -1,6 +1,6 @@
-export const addMessage = (message) => {
+export const updateMessages = (messages) => {
 	return {
-		type: 'add_message',
-		payload: message
+		type: 'update_messages',
+		payload: messages
 	};
 };

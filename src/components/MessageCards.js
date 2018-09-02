@@ -1,18 +1,20 @@
 import React,{ Component } from 'react';
-import { Text, ScrollView, View } from 'react-native';
+import { Text, ScrollView, View, DeviceEventEmitter} from 'react-native';
 import { connect } from 'react-redux';
+
+import * as actions from '../actions';
+import { getLog } from '../services';
+
 import Card from './Card';
 import CardSection from './CardSection';
-import * as actions from '../actions';
 
-class MessageCard extends Component {
+class MessageCards extends Component {
     componentWillMount(){
-        const { socket } = this.props;
         let that = this;
-        console.log(socket);
-        socket.on('notif_message',function(data){
-            that.props.addMessage(data.notif_message);
-        }) 
+        DeviceEventEmitter.addListener('refresh',function(){
+            getLog(that);
+        })
+        getLog(this);
     }
     renderMessages(){
         if(this.props.messages.length == 0){
@@ -36,9 +38,7 @@ class MessageCard extends Component {
     render(){
         return(
             <View>
-                <ScrollView>
-                    {this.renderMessages()}
-                </ScrollView>
+                {this.renderMessages()}
             </View>
         )
     }
@@ -62,4 +62,4 @@ const styles = {
     }
 }
 
-export default connect(mapStateToProps,actions)(MessageCard);
+export default connect(mapStateToProps,actions)(MessageCards);
